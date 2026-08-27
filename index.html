@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="title" content="Improving Information Extraction with Learned Queries - Omar Sharif, Soroush Vosoughi, Nikhil Singh">
+  <meta name="description" content="LoQ learns document-specific question sets for information extraction. Optimizing the questions alone raises F1 by 18.6 points across four clinical benchmarks and five LLMs.">
+  <meta name="keywords" content="information extraction, event argument extraction, question generation, prompt optimization, clinical NLP, large language models, LoQ, FeedQ, EMNLP">
+  <meta name="author" content="Omar Sharif, Soroush Vosoughi, Nikhil Singh">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Dartmouth College">
+  <meta property="og:title" content="Improving Information Extraction with Learned Queries">
+  <meta property="og:description" content="LoQ learns document-specific question sets for information extraction. Optimizing the questions alone raises F1 by 18.6 points across four clinical benchmarks and five LLMs.">
+  <meta property="og:url" content="https://omar-sharif.github.io/LoQ/">
+  <!-- TODO: create a 1200x630 social preview image at static/images/social_preview.png -->
+  <meta property="og:image" content="https://omar-sharif.github.io/LoQ/static/images/fig1_teaser.png">
+  <meta property="og:image:alt" content="LoQ generates a set of document-grounded questions and recovers all four adverse drug reactions.">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Improving Information Extraction with Learned Queries">
+  <meta name="twitter:description" content="Improving the questions alone raises extraction F1 by 18.6 points — more than using a larger extraction model.">
+  <meta name="twitter:image" content="https://omar-sharif.github.io/LoQ/static/images/fig1_teaser.png">
+
+  <!-- Academic / citation -->
+  <meta name="citation_title" content="Improving Information Extraction with Learned Queries">
+  <meta name="citation_author" content="Sharif, Omar">
+  <meta name="citation_author" content="Vosoughi, Soroush">
+  <meta name="citation_author" content="Singh, Nikhil">
+  <meta name="citation_publication_date" content="2026">
+  <meta name="citation_conference_title" content="Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing">
+  <meta name="citation_pdf_url" content="https://omar-sharif.github.io/LoQ/static/pdfs/paper.pdf">
+
+  <meta name="theme-color" content="#2563eb">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://ajax.googleapis.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+  <title>LoQ: Improving Information Extraction with Learned Queries</title>
+
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link rel="apple-touch-icon" href="static/images/favicon.ico">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <link rel="stylesheet" href="static/css/loq.css">
+
+  <link rel="preload" href="static/css/bulma-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/bulma-slider.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/fontawesome.all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  </noscript>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/bulma-carousel.min.js"></script>
+  <script defer src="static/js/bulma-slider.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "Improving Information Extraction with Learned Queries",
+    "description": "LoQ learns document-specific question sets for information extraction, raising F1 by 18.6 points across four clinical benchmarks and five LLMs.",
+    "author": [
+      {"@type": "Person", "name": "Omar Sharif", "affiliation": {"@type": "Organization", "name": "Dartmouth College"}},
+      {"@type": "Person", "name": "Soroush Vosoughi", "affiliation": {"@type": "Organization", "name": "Dartmouth College"}},
+      {"@type": "Person", "name": "Nikhil Singh", "affiliation": {"@type": "Organization", "name": "Dartmouth College"}}
+    ],
+    "datePublished": "2026",
+    "url": "https://omar-sharif.github.io/LoQ/"
+  }
+  </script>
+</head>
+<body>
+
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+
+  <!-- ============================ HERO ============================ -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Improving Information Extraction with Learned Queries</h1>
+
+            <div class="is-size-5 publication-authors">
+              <!-- TODO: add personal homepage URLs for each author -->
+              <span class="author-block"><a href="https://omar-sharif.github.io" target="_blank">Omar Sharif</a>,</span>
+              <span class="author-block">Soroush Vosoughi,</span>
+              <span class="author-block">Nikhil Singh</span>
+            </div>
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">Department of Computer Science, Dartmouth College</span>
+              <br>
+              <!-- TODO: confirm venue string before publishing -->
+              <span class="author-block"><strong>EMNLP 2026</strong></span>
+            </div>
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+
+                <!-- Paper: put the camera-ready at static/pdfs/paper.pdf -->
+                <span class="link-block">
+                  <a href="static/pdfs/paper.pdf" target="_blank"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+
+                <!-- TODO: replace href with the arXiv abs URL, then delete class "is-disabled-link" -->
+                <span class="link-block">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark is-disabled-link"
+                     title="Coming soon">
+                    <span class="icon"><i class="ai ai-arxiv"></i></span>
+                    <span>arXiv (soon)</span>
+                  </a>
+                </span>
+
+                <!-- TODO: replace href with https://github.com/omar-sharif/LoQ, then delete class "is-disabled-link" -->
+                <span class="link-block">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark is-disabled-link"
+                     title="Coming soon">
+                    <span class="icon"><i class="fab fa-github"></i></span>
+                    <span>Code (soon)</span>
+                  </a>
+                </span>
+
+                <!-- TODO: replace href with the Hugging Face dataset URL, then delete class "is-disabled-link" -->
+                <span class="link-block">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark is-disabled-link"
+                     title="Coming soon">
+                    <span class="icon">🤗</span>
+                    <span>Dataset (soon)</span>
+                  </a>
+                </span>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ TEASER ============================ -->
+  <section class="hero teaser">
+    <div class="container is-max-desktop">
+      <div class="hero-body">
+        <img src="static/images/fig1_teaser.png" alt="A case report in which a patient develops four adverse drug reactions after starting paroxetine. A single role-level question retrieves only two of them; LoQ's set of document-grounded questions recovers all four.">
+        <h2 class="subtitle has-text-centered">
+          A patient develops <b>four</b> adverse drug reactions after starting paroxetine. The standard
+          approach asks one role-level question and retrieves <b>two</b>. LoQ asks a set of
+          document-grounded questions, each targeting a different symptom category, and recovers
+          <b>all four</b> — with the <i>same</i> extraction model. Only the questions change.
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ ABSTRACT ============================ -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              When information extraction fails, a natural instinct is to improve the model doing it:
+              for example, by scaling it up or refining its reasoning. In this paper, we show that
+              another part of the pipeline matters at least as much: the queries used to elicit this
+              information. Across four clinical benchmarks and five LLMs, improving the question design
+              alone raises performance by &asymp;18.6 F1-score points, i.e. more than using larger
+              extraction models. To make such <i>question design</i> learnable, we introduce
+              <b>List of Questions (LoQ)</b>, which generates document-specific question sets, and
+              <b>FeedQ</b>, a feedback-driven optimization method that iteratively refines questions
+              against extraction outcomes. The resulting optimized questions can be used to train
+              lightweight generators: with fine-tuning, 4B-parameter models match or outperform
+              expert-derived baselines and substantially exceed the performance of much larger untuned
+              models. We release a dataset of 12,825 optimized questions to support a broader shift in
+              information extraction research toward treating question design as a first-class problem.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ THE BOTTLENECK ============================ -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full">
+          <h2 class="title is-3 has-text-centered">Question design is the bottleneck</h2>
+
+          <div class="content has-text-justified">
+            <p>
+              Information extraction is usually recast as question answering: ask a model a question
+              whose answer is the argument you want. In practice those questions are written once from
+              annotation guidelines and reused across every document — easy to apply, but indifferent
+              to how the evidence is actually expressed. To measure what that costs, we hold the
+              prediction model fixed and vary <i>only</i> how the questions are formed.
+            </p>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-num">+18.6</div>
+              <div class="stat-label">F1 over the strongest human-written baseline, averaged over 4 datasets &times; 5 models</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">+13.2</div>
+              <div class="stat-label">F1 from a single zero-shot FeedQ pass, before any refinement</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">12,825</div>
+              <div class="stat-label">optimized (document, role, question-set) triples released</div>
+            </div>
+          </div>
+
+          <h3 class="title is-5">Mean F1 by questioning strategy</h3>
+          <div class="table-wrap">
+            <table class="loq-table">
+              <thead>
+                <tr><th>Approach</th><th>CaseReportBench</th><th>PHEE</th><th>DiscourseEE</th><th>MACCROBAT</th><th>Mean</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>No-Question</td><td>63.3</td><td>69.3</td><td>47.4</td><td>37.9</td><td>54.5</td></tr>
+                <tr class="grp"><td colspan="6"><i>Human-written knowledge questions</i></td></tr>
+                <tr><td>Knowledge-Q</td><td>69.7</td><td>77.4</td><td>56.1</td><td>43.5</td><td>61.7</td></tr>
+                <tr><td>CoT-Q</td><td>67.9</td><td>76.3</td><td>57.2</td><td>43.0</td><td>61.1</td></tr>
+                <tr class="grp"><td colspan="6"><i>Dynamic questions generated with GPT-OSS-120B</i></td></tr>
+                <tr><td>Contextual-Q</td><td>54.6</td><td>56.0</td><td>41.7</td><td>32.0</td><td>46.1</td></tr>
+                <tr><td>Zs-FeedQ</td><td>84.5</td><td>85.2</td><td>64.4</td><td>65.6</td><td>74.9</td></tr>
+                <tr class="best"><td><b>Opt-FeedQ</b></td><td><b>87.2</b></td><td><b>88.4</b></td><td><b>69.3</b></td><td><b>76.2</b></td><td><b>80.3</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="caption">
+            Dev-set F1, averaged across five prediction models. Only the questions change between rows.
+            Zs-FeedQ questions come from one zero-shot pass; Opt-FeedQ questions are iteratively refined
+            with FeedQ. Both see ground-truth arguments during <i>question generation</i>, establishing an
+            upper bound on what well-targeted questions can achieve.
+          </p>
+
+          <details class="loq-details">
+            <summary>Full per-model breakdown (Table 1)</summary>
+            <div class="table-wrap">
+              <table class="loq-table is-compact">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Approach</th>
+                    <th colspan="6">CaseReportBench</th>
+                    <th colspan="6">PHEE</th>
+                  </tr>
+                  <tr>
+                    <th>Qw3-4B</th><th>Qw3-8B</th><th>OSS-120B</th><th>GPT-5-mini</th><th>Gemini-3.1</th><th>Mean</th>
+                    <th>Qw3-4B</th><th>Qw3-8B</th><th>OSS-120B</th><th>GPT-5-mini</th><th>Gemini-3.1</th><th>Mean</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>No-Question</td><td>55.6</td><td>54.9</td><td>70.1</td><td>65.2</td><td>70.6</td><td>63.3</td><td>62.8</td><td>67.8</td><td>66.2</td><td>66.4</td><td>83.3</td><td>69.3</td></tr>
+                  <tr><td>Knowledge-Q</td><td>62.4</td><td>61.6</td><td>75.3</td><td>71.0</td><td>78.3</td><td>69.7</td><td>76.5</td><td>79.5</td><td>75.7</td><td>71.8</td><td>83.4</td><td>77.4</td></tr>
+                  <tr><td>CoT-Q</td><td>62.8</td><td>57.5</td><td>73.9</td><td>67.9</td><td>77.2</td><td>67.9</td><td>69.2</td><td>73.5</td><td>76.2</td><td>78.6</td><td>84.2</td><td>76.3</td></tr>
+                  <tr><td>Contextual-Q</td><td>54.3</td><td>50.6</td><td>57.9</td><td>52.5</td><td>57.7</td><td>54.6</td><td>49.3</td><td>47.5</td><td>51.0</td><td>52.9</td><td>79.5</td><td>56.0</td></tr>
+                  <tr><td>Zs-FeedQ</td><td>76.9</td><td>72.1</td><td>92.7</td><td>88.7</td><td>91.9</td><td>84.5</td><td>82.5</td><td>83.5</td><td>86.3</td><td>84.4</td><td>89.4</td><td>85.2</td></tr>
+                  <tr class="best"><td>Opt-FeedQ</td><td>79.2</td><td>73.4</td><td>96.9</td><td>92.4</td><td>94.0</td><td>87.2</td><td>82.3</td><td>84.8</td><td>94.3</td><td>89.8</td><td>90.6</td><td>88.4</td></tr>
+                </tbody>
+                <thead>
+                  <tr>
+                    <th rowspan="2">Approach</th>
+                    <th colspan="6">DiscourseEE</th>
+                    <th colspan="6">MACCROBAT</th>
+                  </tr>
+                  <tr>
+                    <th>Qw3-4B</th><th>Qw3-8B</th><th>OSS-120B</th><th>GPT-5-mini</th><th>Gemini-3.1</th><th>Mean</th>
+                    <th>Qw3-4B</th><th>Qw3-8B</th><th>OSS-120B</th><th>GPT-5-mini</th><th>Gemini-3.1</th><th>Mean</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>No-Question</td><td>46.6</td><td>46.1</td><td>47.2</td><td>44.9</td><td>52.2</td><td>47.4</td><td>30.3</td><td>33.2</td><td>37.1</td><td>37.1</td><td>52.0</td><td>37.9</td></tr>
+                  <tr><td>Knowledge-Q</td><td>53.0</td><td>53.8</td><td>60.5</td><td>55.6</td><td>57.8</td><td>56.1</td><td>36.6</td><td>38.3</td><td>42.1</td><td>42.5</td><td>58.1</td><td>43.5</td></tr>
+                  <tr><td>CoT-Q</td><td>54.7</td><td>55.7</td><td>61.9</td><td>53.6</td><td>60.1</td><td>57.2</td><td>36.9</td><td>38.6</td><td>42.5</td><td>40.0</td><td>57.1</td><td>43.0</td></tr>
+                  <tr><td>Contextual-Q</td><td>42.2</td><td>41.3</td><td>43.5</td><td>41.0</td><td>40.3</td><td>41.7</td><td>30.5</td><td>31.3</td><td>30.5</td><td>29.3</td><td>38.3</td><td>32.0</td></tr>
+                  <tr><td>Zs-FeedQ</td><td>60.0</td><td>61.2</td><td>72.2</td><td>61.2</td><td>67.3</td><td>64.4</td><td>49.4</td><td>56.3</td><td>74.9</td><td>64.1</td><td>83.6</td><td>65.6</td></tr>
+                  <tr class="best"><td>Opt-FeedQ</td><td>65.5</td><td>64.8</td><td>82.5</td><td>64.6</td><td>69.0</td><td>69.3</td><td>57.3</td><td>66.5</td><td>91.1</td><td>74.6</td><td>91.3</td><td>76.2</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+
+          <h3 class="title is-5">Choosing the question generator</h3>
+          <div class="content has-text-justified">
+            <p>
+              Running FeedQ means picking a generator, which is a quality/cost trade-off. Across five
+              zero-shot generators, the large models beat the Qwen3 baselines by a wide margin
+              (&asymp;72&ndash;76 vs. &asymp;54 F1). GPT-5.2 is best overall at 76.1, but GPT-OSS-120B is
+              within 1.2 F1 while being over <b>40&times; cheaper per token</b> at the time of writing —
+              and its open weights allow local deployment on private data. We therefore use
+              GPT-OSS-120B as the question generator, and for scalability also as the prediction and
+              refinement model.
+            </p>
+          </div>
+          <div class="table-wrap">
+            <table class="loq-table is-narrow">
+              <thead><tr><th>QG model</th><th>CRB</th><th>PHEE</th><th>DEE</th><th>MBAT</th><th>Mean</th></tr></thead>
+              <tbody>
+                <tr><td>Qwen3-4B</td><td>60.8</td><td>66.8</td><td>48.3</td><td>43.3</td><td>54.8</td></tr>
+                <tr><td>Qwen3-8B</td><td>60.8</td><td>64.1</td><td>47.8</td><td>40.7</td><td>53.4</td></tr>
+                <tr class="best"><td>GPT-OSS-120B <span class="small-note">(used)</span></td><td>84.5</td><td>85.2</td><td>64.4</td><td>65.6</td><td>74.9</td></tr>
+                <tr><td>GPT-5.2</td><td>85.1</td><td>85.9</td><td>65.8</td><td>67.8</td><td><b>76.1</b></td></tr>
+                <tr><td>Gemini-3.1-Pro</td><td>79.8</td><td>85.1</td><td>63.5</td><td>59.8</td><td>72.1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="caption">Zero-shot question generation quality, F1 averaged over the five prediction models.</p>
+
+          <details class="loq-details">
+            <summary>Per-prediction-model breakdown (Figure 5)</summary>
+            <img src="static/images/fig5_qg_breakdown.png" alt="Grouped bar charts showing F1 for each question generator evaluated with all five prediction models, on each of the four datasets.">
+          </details>
+
+          <h3 class="title is-5">Why naive document-conditioning backfires</h3>
+          <div class="content has-text-justified">
+            <p>
+              Contextual-Q conditions on the document but has no signal about whether its questions
+              worked — and it lands <i>below</i> the no-question baseline. The reason is visible in the
+              precision/recall split: it generates 5.27 questions per document&ndash;role pair on average,
+              which lifts recall on every dataset but collapses precision by inflating false positives.
+              Document conditioning without grounding produces vague queries, and reasoning depth
+              (CoT-Q) does not compensate for a poorly targeted question.
+            </p>
+          </div>
+          <div class="table-wrap">
+            <table class="loq-table is-narrow">
+              <thead><tr><th>Dataset</th><th>Approach</th><th>P</th><th>R</th><th>F1</th></tr></thead>
+              <tbody>
+                <tr><td rowspan="2">CaseReportBench</td><td>No-Question</td><td>54.5</td><td>77.5</td><td>63.3</td></tr>
+                <tr class="alt"><td>Contextual-Q</td><td>40.2</td><td>85.8</td><td>54.6</td></tr>
+                <tr><td rowspan="2">PHEE</td><td>No-Question</td><td>63.6</td><td>76.9</td><td>69.4</td></tr>
+                <tr class="alt"><td>Contextual-Q</td><td>44.6</td><td>78.6</td><td>56.0</td></tr>
+                <tr><td rowspan="2">DiscourseEE</td><td>No-Question</td><td>37.4</td><td>65.7</td><td>47.4</td></tr>
+                <tr class="alt"><td>Contextual-Q</td><td>28.8</td><td>76.3</td><td>41.7</td></tr>
+                <tr><td rowspan="2">MACCROBAT</td><td>No-Question</td><td>29.1</td><td>54.8</td><td>38.0</td></tr>
+                <tr class="alt"><td>Contextual-Q</td><td>22.1</td><td>57.9</td><td>32.0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="caption">Overall precision, recall, and F1 for No-Question and Contextual-Q.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ METHOD ============================ -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">The LoQ framework</h2>
+      <img src="static/images/fig2_pipeline.png" alt="Three-phase overview of LoQ: question optimization with FeedQ, supervised fine-tuning of a question generator, and prediction on unseen documents.">
+      <div class="content has-text-justified" style="margin-top:1.5rem;">
+        <p>LoQ automates the full argument-extraction cycle in three phases:</p>
+        <ol>
+          <li><b>Question optimization.</b> Given a document, a role, and its ground-truth arguments,
+              FeedQ runs an iterative loop that derives the questions which best extract those
+              arguments, producing gold question sets.</li>
+          <li><b>Question generation.</b> Those gold questions supervise the fine-tuning of a small
+              question generator, teaching it to produce effective questions from a document and role
+              alone — no ground truth required.</li>
+          <li><b>Prediction.</b> At test time the fine-tuned generator writes questions for unseen
+              documents, and an off-the-shelf LM answers them to extract arguments.</li>
+        </ol>
+        <p>
+          Separating question generation from prediction lets each component specialize.
+        </p>
+      </div>
+
+      <h3 class="title is-4">FeedQ: feedback-driven question optimization</h3>
+      <div class="columns is-vcentered">
+        <div class="column is-half">
+          <div class="content has-text-justified">
+            <p>
+              FeedQ alternates <b>generate &rarr; predict &rarr; evaluate &rarr; refine</b>. At each
+              iteration a <b>leakage check</b> rewrites any question that embeds a ground-truth answer,
+              the prediction model answers the surviving questions, and the result is scored against
+              the gold arguments with a hierarchical matcher.
+            </p>
+            <p>
+              The structured feedback signal &mdash; matched, missed, and over-generated arguments plus
+              the scores &mdash; goes to a refiner LM, which adds questions targeting what was missed,
+              tightens or drops questions causing over-generation, and preserves the ones that worked.
+              The loop stops on a target F1, on patience, or at the iteration cap, and always returns
+              the <i>best</i> question set seen, since F1 is not monotonic across iterations.
+            </p>
+            <p class="small-note">
+              We run FeedQ for up to 5 iterations, patience 3, target score 1.0. The leakage checker's
+              manually audited false-negative rate is 0.83% (5/600 inspected question sets).
+            </p>
+          </div>
+        </div>
+        <div class="column is-half">
+          <img src="static/images/algorithm1.png" alt="Algorithm 1: pseudocode for FeedQ, the feedback-driven question optimization loop.">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ RESULTS ============================ -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Learning to ask, without the answers</h2>
+      <div class="content has-text-justified">
+        <p>
+          FeedQ needs ground truth. The deployable question is whether a model can learn the
+          <i>behaviour</i> and generate good questions for unseen documents. We fine-tune Qwen3-4B and
+          Qwen3-8B with LoRA on the 12,825 FeedQ triples and compare against human-written questions,
+          the same models without fine-tuning, and three much larger untuned generators.
+        </p>
+        <p>
+          Both fine-tuned models reach <b>62.7 mean F1</b>, up from &asymp;53 untuned — and they beat
+          every non-fine-tuned baseline, including GPT-5.2 and Gemini-3.1-Pro, as well as the
+          human-written Knowledge-Q questions on average. A 4B generator outperforms generators
+          orders of magnitude larger, which suggests effective question generation is largely a matter
+          of implementing the right questioning behaviour rather than raw scale.
+        </p>
+      </div>
+
+      <h3 class="title is-5">Test-set F1, averaged across five prediction models</h3>
+      <div class="table-wrap">
+        <table class="loq-table">
+          <thead><tr><th>QG approach</th><th>CRB</th><th>PHEE</th><th>DEE</th><th>MBAT</th><th>Mean</th></tr></thead>
+          <tbody>
+            <tr class="grp"><td colspan="6"><i>Human-written knowledge questions</i></td></tr>
+            <tr><td>Knowledge-Q</td><td>68.2</td><td>77.3</td><td>55.6</td><td>44.1</td><td>61.3</td></tr>
+            <tr><td>CoT-Q</td><td>66.6</td><td>75.2</td><td>55.8</td><td>44.6</td><td>60.5</td></tr>
+            <tr class="grp"><td colspan="6"><i>Fine-tuned and non fine-tuned QG models</i></td></tr>
+            <tr><td>Qwen3-4B</td><td>57.3</td><td>65.8</td><td>47.7</td><td>41.5</td><td>53.1</td></tr>
+            <tr><td>Qwen3-8B</td><td>59.5</td><td>63.7</td><td>46.1</td><td>41.1</td><td>52.6</td></tr>
+            <tr><td>Qwen3-4B<sup>ft-a</sup></td><td>67.5</td><td>80.7</td><td>51.9</td><td>49.0</td><td>62.3</td></tr>
+            <tr class="best"><td>Qwen3-4B<sup>ft*</sup></td><td>67.5</td><td><b>81.8</b></td><td>51.9</td><td><b>49.7</b></td><td><b>62.7</b></td></tr>
+            <tr><td>Qwen3-8B<sup>ft-a</sup></td><td>64.7</td><td>81.6</td><td>51.5</td><td>47.2</td><td>61.3</td></tr>
+            <tr class="best"><td>Qwen3-8B<sup>ft*</sup></td><td>67.7</td><td><b>82.0</b></td><td>52.5</td><td>48.4</td><td><b>62.7</b></td></tr>
+            <tr class="grp"><td colspan="6"><i>Strong QG baselines (non fine-tuned)</i></td></tr>
+            <tr><td>GPT-OSS-120B</td><td>53.3</td><td>54.0</td><td>41.4</td><td>34.1</td><td>45.7</td></tr>
+            <tr><td>GPT-5.2</td><td>63.5</td><td>69.5</td><td>46.2</td><td>40.4</td><td>54.9</td></tr>
+            <tr><td>Gemini-3.1-Pro</td><td>66.0</td><td>80.6</td><td>50.9</td><td>42.9</td><td>60.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">
+        All generators here are conditioned only on the document and role — no ground-truth access.
+        <sup>ft*</sup> is the best of three training mixes per model; <sup>ft-a</sup> is the
+        all-available mixture. CRB / DEE / MBAT are CaseReportBench / DiscourseEE / MACCROBAT.
+      </p>
+
+      <div class="content has-text-justified">
+        <p class="small-note">
+          The remaining gaps track training data, not method: PHEE and MACCROBAT contribute 5,000
+          triples each and see the largest gains, while CaseReportBench (620 triples) and DiscourseEE
+          (2,215) are where Knowledge-Q still holds a small edge.
+        </p>
+      </div>
+
+      <details class="loq-details">
+        <summary>How performance scales with training data (Figure 6)</summary>
+        <img src="static/images/fig6_data_scaling.png" alt="Line chart of F1 versus in-domain training fraction for a Qwen3-8B question generator fine-tuned on 10, 20, 30, and 100 percent of each dataset's triples.">
+        <p class="caption">
+          A separate Qwen3-8B generator fine-tuned on 10/20/30/100% of each dataset's triples, evaluated
+          with GPT-OSS-120B. On the large datasets (PHEE, MACCROBAT) even 10% beats the base model and
+          performance rises monotonically. On the small ones (CaseReportBench, DiscourseEE) 10% drops
+          <i>below</i> base — consistent with catastrophic forgetting — then recovers and overtakes it
+          by 100%.
+        </p>
+      </details>
+
+      <h3 class="title is-5">Out-of-domain generalization</h3>
+      <div class="content has-text-justified">
+        <p>
+          Fine-tuning on clinical questions transfers to non-clinical documents. On DocEE — long,
+          argument-dense news documents — the base model sprays 30 loosely relevant questions while the
+          fine-tuned model asks 4 targeted ones, trading recall for a large precision gain. MUC4 shows
+          the same pattern. GENEVA is the exception: it annotates multiple coreferent arguments per
+          role in a single sentence, so the base model's broader question sets happen to provide
+          coverage that focused questions give up.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <table class="loq-table is-narrow">
+          <thead>
+            <tr><th rowspan="2">Dataset</th><th colspan="3">Qwen3-4B</th><th colspan="3">Qwen3-8B</th></tr>
+            <tr><th>P</th><th>R</th><th>F1</th><th>P</th><th>R</th><th>F1</th></tr>
+          </thead>
+          <tbody>
+            <tr class="grp"><td colspan="7"><i>Base</i></td></tr>
+            <tr><td>DocEE</td><td>33.35</td><td>82.88</td><td>46.53</td><td>35.58</td><td>83.82</td><td>49.20</td></tr>
+            <tr><td>GENEVA</td><td>48.33</td><td>77.51</td><td><b>59.13</b></td><td>47.38</td><td>77.66</td><td>58.30</td></tr>
+            <tr><td>MUC4</td><td>45.98</td><td>80.20</td><td>57.45</td><td>47.21</td><td>80.14</td><td>58.56</td></tr>
+            <tr class="grp"><td colspan="7"><i>Fine-tuned (ft*)</i></td></tr>
+            <tr><td>DocEE</td><td>49.18</td><td>63.63</td><td>55.28</td><td>48.38</td><td>68.65</td><td><b>56.65</b></td></tr>
+            <tr><td>GENEVA</td><td>49.73</td><td>56.43</td><td>52.82</td><td>49.66</td><td>56.65</td><td>52.88</td></tr>
+            <tr><td>MUC4</td><td>53.82</td><td>61.86</td><td>57.30</td><td>54.34</td><td>67.24</td><td><b>59.90</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">Zero-shot out-of-domain results on 500-sample subsets, averaged across all evaluator models.</p>
+    </div>
+  </section>
+
+  <!-- ============================ ANALYSIS ============================ -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">What the optimized questions look like</h2>
+      <div class="columns">
+        <div class="column is-half">
+          <img src="static/images/fig3_iterations.png" alt="Bar chart of the FeedQ iteration at which the best-scoring question set is found, per dataset.">
+          <p class="caption">
+            <b>Iterative refinement is not redundant.</b> One pass suffices for most roles in PHEE (87%)
+            and MACCROBAT (75%), but 47% of DiscourseEE roles and a quarter of CaseReportBench roles
+            need two or more iterations to reach their best question set.
+          </p>
+        </div>
+        <div class="column is-half">
+          <img src="static/images/fig4_questions_per_role.png" alt="Bar chart of the number of optimized questions generated per role, per dataset.">
+          <p class="caption">
+            <b>One question per role is often not enough.</b> CaseReportBench gives only 41% of roles a
+            single question; 59% get two or more and 27% need four or more. Roles in structurally rich
+            schemas have to be decomposed.
+          </p>
+        </div>
+      </div>
+
+      <h3 class="title is-4 has-text-centered" style="margin-top:2rem;">Vanilla question vs. List of Questions</h3>
+      <div id="examples-carousel" class="carousel results-carousel">
+
+        <div class="item">
+          <div class="example-card">
+            <div class="example-tag">CaseReportBench &middot; Lab/Imaging</div>
+            <div class="example-doc">
+              <b>PSA</b> was 0.393 ng/mL […] <b>X-ray</b> of pelvis showed punctate calcification […]
+              <b>CT</b> scan showed extensive calcified areas […] <b>Biochemical analysis</b> of urine
+              showed calcium.
+            </div>
+            <div class="example-cols">
+              <div class="example-col vanilla">
+                <h4>Vanilla question</h4>
+                <p>What laboratory test results or imaging findings are reported (e.g., MRI, CT, X-ray, biochemical tests)?</p>
+              </div>
+              <div class="example-col loq">
+                <h4>List of Questions</h4>
+                <ol>
+                  <li>Was a prostate specific antigen (PSA) level reported?</li>
+                  <li>What calcification findings were described on the pelvic X-ray?</li>
+                  <li>What calcification findings were described on the CT scan?</li>
+                  <li>What substance was identified in the urine biochemical analysis?</li>
+                  <li>What components were identified in the biochemical analysis of the extracted prostatic calculi?</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="example-card">
+            <div class="example-tag">PHEE &middot; Effect</div>
+            <div class="example-doc">
+              A 31-year-old man with OCD developed <b>RBD</b> soon after starting fluoxetine therapy,
+              which <b>persisted at PSG study 19 months</b> after fluoxetine discontinuation.
+            </div>
+            <div class="example-cols">
+              <div class="example-col vanilla">
+                <h4>Vanilla question</h4>
+                <p>What are the outcomes or side effects of the treatments?</p>
+              </div>
+              <div class="example-col loq">
+                <h4>List of Questions</h4>
+                <ol>
+                  <li>What sleep disorder did the patient develop after starting fluoxetine therapy?</li>
+                  <li>According to the polysomnography study, how many months after fluoxetine discontinuation did this disorder persist?</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="example-card">
+            <div class="example-tag">PHEE &middot; Treatment-Drug</div>
+            <div class="example-doc">
+              We report a case of recurrent torsades de pointes following treatment with
+              <b>pentavalent antimonial drugs</b> and <b>amiodarone</b>.
+            </div>
+            <div class="example-cols">
+              <div class="example-col vanilla">
+                <h4>Vanilla question</h4>
+                <p>What are the drugs used as therapy in the event?</p>
+              </div>
+              <div class="example-col loq">
+                <h4>List of Questions</h4>
+                <ol>
+                  <li>What antiarrhythmic drug was administered to the patient?</li>
+                  <li>What antimonial medication was administered to the patient?</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="example-card">
+            <div class="example-tag">DiscourseEE &middot; Tapering-Event</div>
+            <div class="example-doc">
+              Post: I took <b>6 mgs then 4 mgs then 2 mg's</b> yesterday. It was closer to
+              <b>2&frac12; days</b> […] I don't plan to take anymore […] will I have any Suboxone withdrawals?
+            </div>
+            <div class="example-cols">
+              <div class="example-col vanilla">
+                <h4>Vanilla question</h4>
+                <p>What are the tapering steps (drugs, start dosage, duration, goal dosage)?</p>
+              </div>
+              <div class="example-col loq">
+                <h4>List of Questions</h4>
+                <ol>
+                  <li>What is the duration of the Suboxone taper before the individual stopped?</li>
+                  <li>What dosages of Suboxone were taken during the taper and in what order?</li>
+                  <li>What concerns does the individual express about potential withdrawal?</li>
+                  <li>What does the individual intend to do regarding Suboxone use after the taper?</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="example-card">
+            <div class="example-tag">MACCROBAT &middot; Lab_value</div>
+            <div class="example-doc">
+              Admission blood test showed a <b>slight decrease</b> in hemoglobin (<b>106 g/L</b>).
+            </div>
+            <div class="example-cols">
+              <div class="example-col vanilla">
+                <h4>Vanilla question</h4>
+                <p>What were the test results, measurements, or laboratory values from the diagnostic procedure?</p>
+              </div>
+              <div class="example-col loq">
+                <h4>List of Questions</h4>
+                <ol>
+                  <li>What is the hemoglobin concentration reported in the admission blood test?</li>
+                  <li>How is the hemoglobin level described qualitatively?</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="example-card">
+            <div class="example-tag">MACCROBAT &middot; Dosage</div>
+            <div class="example-doc">
+              She was given […] sodium bicarbonate (<b>8.4%</b>, <b>10 flacon/day</b>) infusion for
+              24 hours before chemotherapy.
+            </div>
+            <div class="example-cols">
+              <div class="example-col vanilla">
+                <h4>Vanilla question</h4>
+                <p>What is the dosage, amount, or quantity of the medication?</p>
+              </div>
+              <div class="example-col loq">
+                <h4>List of Questions</h4>
+                <ol>
+                  <li>What is the concentration of the sodium bicarbonate infusion administered?</li>
+                  <li>What is the daily amount of sodium bicarbonate given?</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <p class="caption">
+        Bold text in each excerpt marks the distinct arguments the optimized questions target.
+        Simple multi-argument roles get two targeted questions; complex roles get a set.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================ DATASET ============================ -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Dataset: 12,825 optimized questions</h2>
+      <div class="content has-text-justified">
+        <p>
+          We release every (document, role, optimized question-set) triple produced by FeedQ, so that
+          question design can be studied — and improved on — as a component in its own right. Each
+          record has the document text, the target role, the optimized question set, and the
+          ground-truth arguments used during optimization.
+        </p>
+      </div>
+
+      <div class="table-wrap">
+        <table class="loq-table">
+          <thead>
+            <tr><th>Dataset</th><th>Train</th><th>Dev</th><th>Test</th><th>Roles</th><th>Avg. doc len</th><th>Domain</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CaseReportBench</td><td>620</td><td>350</td><td>350</td><td>18</td><td>581.7</td><td>Clinical case reports</td></tr>
+            <tr><td>PHEE</td><td>5,000</td><td>500</td><td>500</td><td>14</td><td>19.7</td><td>Pharmacovigilance texts</td></tr>
+            <tr><td>DiscourseEE</td><td>2,215</td><td>500</td><td>500</td><td>34</td><td>120.8</td><td>Online health forums</td></tr>
+            <tr><td>MACCROBAT</td><td>5,000</td><td>500</td><td>500</td><td>22</td><td>24.2</td><td>PubMed case reports</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">
+        Optimized triples per dataset: 620 / 5,000 / 2,215 / 5,000 — <b>12,825</b> in total.
+      </p>
+
+      <!-- TODO: replace REPO_PLACEHOLDER with the real Hugging Face dataset id once published -->
+      <pre class="code-block"><code>from datasets import load_dataset
+
+# TODO: update once the dataset is published
+ds = load_dataset("REPO_PLACEHOLDER/LoQ")
+print(ds["train"][0])
+# {"document": ..., "role": ..., "questions": [...], "arguments": [...]}</code></pre>
+
+      <div class="content">
+        <p class="small-note">
+          Source benchmarks:
+          <a href="https://huggingface.co/CaseReportBench" target="_blank">CaseReportBench</a> &middot;
+          <a href="https://github.com/ZhaoyueSun/PHEE" target="_blank">PHEE</a> &middot;
+          <a href="https://github.com/omarsharif03/DiscourseEE" target="_blank">DiscourseEE</a> &middot;
+          MACCROBAT (via <a href="https://github.com/PlusLabNLP/DICE" target="_blank">DICE</a>).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ============================ BIBTEX ============================ -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <div class="bibtex-header">
+        <h2 class="title">BibTeX</h2>
+        <button class="copy-bibtex-btn" onclick="copyBibTeX()" title="Copy BibTeX to clipboard">
+          <i class="fas fa-copy"></i>
+          <span class="copy-text">Copy</span>
+        </button>
+      </div>
+      <!-- TODO: add pages/address/publisher once the proceedings are out -->
+      <pre id="bibtex-code"><code>@inproceedings{sharif2026loq,
+  title     = {Improving Information Extraction with Learned Queries},
+  author    = {Sharif, Omar and Vosoughi, Soroush and Singh, Nikhil},
+  booktitle = {Proceedings of the 2026 Conference on Empirical Methods
+               in Natural Language Processing (EMNLP)},
+  year      = {2026},
+  url       = {https://omar-sharif.github.io/LoQ}
+}</code></pre>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+            <p>
+              This page was built using the
+              <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>
+              which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+              You are free to borrow the source code of this website, we just ask that you link back to this page in the footer.
+              <br>
+              This website is licensed under a
+              <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
