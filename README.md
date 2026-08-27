@@ -30,10 +30,10 @@ python3 -m http.server 8000
 
 Every item below is marked with a `TODO` comment in `index.html`.
 
-- [ ] **Add `static/pdfs/paper.pdf`** — the Paper button 404s without it.
-- [ ] **Replace the placeholder figures.** `static/images/*.png` are grey placeholders.
-      Run `bash tools/extract_figures.sh paper.pdf`, crop each figure, and overwrite the
-      matching filename. No HTML edit is needed — the names are fixed.
+- [x] ~~Add `static/pdfs/paper.pdf`~~ — done.
+- [x] ~~Replace the placeholder figures~~ — all seven extracted from the camera-ready at 300 DPI.
+      To swap one later, overwrite the same filename in `static/images/`; no HTML edit needed.
+      `bash tools/extract_figures.sh static/pdfs/paper.pdf` re-renders the source pages.
 - [ ] **arXiv / Code / Dataset buttons.** Each is a disabled grey placeholder. Set the real
       `href` and delete the `is-disabled-link` class (and the " (soon)" in the label).
 - [ ] **Hugging Face dataset id** in the `load_dataset(...)` snippet (`REPO_PLACEHOLDER`).
