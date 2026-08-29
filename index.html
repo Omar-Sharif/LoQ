@@ -137,19 +137,19 @@
 
                 <!-- TODO: replace href with https://github.com/omar-sharif/LoQ, then delete class "is-disabled-link" -->
                 <span class="link-block">
-                  <a href="#" class="external-link button is-normal is-rounded is-dark is-disabled-link"
+                  <a href="https://github.com/Omar-Sharif/LoQ-code" class="external-link button is-normal is-rounded is-dark"
                      title="Coming soon">
                     <span class="icon"><i class="fab fa-github"></i></span>
-                    <span>Code (soon)</span>
+                    <span>Code</span>
                   </a>
                 </span>
 
                 <!-- TODO: replace href with the Hugging Face dataset URL, then delete class "is-disabled-link" -->
                 <span class="link-block">
-                  <a href="#" class="external-link button is-normal is-rounded is-dark is-disabled-link"
+                  <a href="https://huggingface.co/datasets/omar-sharif03/loq-triples" class="external-link button is-normal is-rounded is-dark"
                      title="Coming soon">
                     <span class="icon">🤗</span>
-                    <span>Dataset (soon)</span>
+                    <span>Dataset</span>
                   </a>
                 </span>
 
@@ -231,7 +231,7 @@
               <div class="stat-label">F1 from a single zero-shot FeedQ pass, before any refinement</div>
             </div>
             <div class="stat-card">
-              <div class="stat-num">12,825</div>
+              <div class="stat-num">12,820</div>
               <div class="stat-label">optimized (document, role, question-set) triples released</div>
             </div>
           </div>
@@ -721,22 +721,22 @@
           <tbody>
             <tr><td>CaseReportBench</td><td>620</td><td>350</td><td>350</td><td>18</td><td>581.7</td><td>Clinical case reports</td></tr>
             <tr><td>PHEE</td><td>5,000</td><td>500</td><td>500</td><td>14</td><td>19.7</td><td>Pharmacovigilance texts</td></tr>
-            <tr><td>DiscourseEE</td><td>2,215</td><td>500</td><td>500</td><td>34</td><td>120.8</td><td>Online health forums</td></tr>
+            <tr><td>DiscourseEE</td><td>2,200</td><td>500</td><td>500</td><td>34</td><td>120.8</td><td>Online health forums</td></tr>
             <tr><td>MACCROBAT</td><td>5,000</td><td>500</td><td>500</td><td>22</td><td>24.2</td><td>PubMed case reports</td></tr>
           </tbody>
         </table>
       </div>
       <p class="caption">
-        Optimized triples per dataset: 620 / 5,000 / 2,215 / 5,000 — <b>12,825</b> in total.
+        Optimized triples per dataset: 620 / 5,000 / 2,200 / 5,000 — <b>12,820</b> in total.
       </p>
 
-      <!-- TODO: replace REPO_PLACEHOLDER with the real Hugging Face dataset id once published -->
+      <!-- <!-- TODO: replace REPO_PLACEHOLDER with the real Hugging Face dataset id once published -->
       <pre class="code-block"><code>from datasets import load_dataset
 
 # TODO: update once the dataset is published
 ds = load_dataset("REPO_PLACEHOLDER/LoQ")
 print(ds["train"][0])
-# {"document": ..., "role": ..., "questions": [...], "arguments": [...]}</code></pre>
+# {"document": ..., "role": ..., "questions": [...], "arguments": [...]}</code></pre> -->
 
       <div class="content">
         <p class="small-note">
