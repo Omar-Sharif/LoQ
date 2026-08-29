@@ -195,7 +195,7 @@
               against extraction outcomes. The resulting optimized questions can be used to train
               lightweight generators: with fine-tuning, 4B-parameter models match or outperform
               expert-derived baselines and substantially exceed the performance of much larger untuned
-              models. We release a dataset of 12,825 optimized questions to support a broader shift in
+              models. We release a dataset of 12,820 optimized questions to support a broader shift in
               information extraction research toward treating question design as a first-class problem.
             </p>
           </div>
@@ -430,7 +430,7 @@
         <p>
           FeedQ needs ground truth. The deployable question is whether a model can learn the
           <i>behaviour</i> and generate good questions for unseen documents. We fine-tune Qwen3-4B and
-          Qwen3-8B with LoRA on the 12,825 FeedQ triples and compare against human-written questions,
+          Qwen3-8B with LoRA on the 12,820 FeedQ triples and compare against human-written questions,
           the same models without fine-tuning, and three much larger untuned generators.
         </p>
         <p>
@@ -703,7 +703,7 @@
   <!-- ============================ DATASET ============================ -->
   <section class="section">
     <div class="container is-max-desktop">
-      <h2 class="title is-3 has-text-centered">Dataset: 12,825 optimized questions</h2>
+      <h2 class="title is-3 has-text-centered">Dataset: 12,820 optimized questions</h2>
       <div class="content has-text-justified">
         <p>
           We release every (document, role, optimized question-set) triple produced by FeedQ, so that
